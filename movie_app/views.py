@@ -9,7 +9,6 @@ class DirectorListCreateView(generics.ListCreateAPIView):
 class DirectorDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Director.objects.all()
     serializer_class = DirectorSerializer
-    lookup_field = 'id'  # Используем id вместо pk
 
 class MovieListCreateView(generics.ListCreateAPIView):
     queryset = Movie.objects.all()
@@ -18,7 +17,6 @@ class MovieListCreateView(generics.ListCreateAPIView):
 class MovieDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
-    lookup_field = 'id'  # Используем id вместо pk
 
 class ReviewListCreateView(generics.ListCreateAPIView):
     queryset = Review.objects.all()
@@ -27,4 +25,3 @@ class ReviewListCreateView(generics.ListCreateAPIView):
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    lookup_field = 'id'  # Используем id вместо pk
