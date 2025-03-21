@@ -1,38 +1,48 @@
 from rest_framework import serializers
-from .models import Director, Movie, Review
+from django.contrib.auth import authenticate
+from .models import User
 
-class ReviewSerializer(serializers.ModelSerializer):
-    def validate_stars(self, value):
-        if not (1 <= value <= 5):
-            raise serializers.ValidationError("Рейтинг должен быть от 1 до 5.")
-        return value
 
+class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Review
-        fields = '__all__'
+        model = User
+        fields = ('username', 'email', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
 
-class MovieSerializer(serializers.ModelSerializer):
-    reviews = ReviewSerializer(many=True, read_only=True)
-    rating = serializers.SerializerMethodField()
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        user.is_active = False  # Делаем неактивным
+        user.generate_confirmation_code()  # Генерируем код
+        return user
 
-    def get_rating(self, obj):
-        reviews = obj.reviews.all()
-        if reviews.exists():
-            return round(sum(r.stars for r in reviews) / reviews.count(), 1)
-        return 0
 
-    def validate_duration(self, value):
-        if value <= 0:
-            raise serializers.ValidationError("Продолжительность фильма должна быть больше 0.")
-        return value
+class ConfirmSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    confirmation_code = serializers.CharField(max_length=6)
 
-    class Meta:
-        model = Movie
-        fields = '__all__'
+    def validate(self, data):
+        try:
+            user = User.objects.get(username=data['username'])
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Пользователь не найден.")
 
-class DirectorSerializer(serializers.ModelSerializer):
-    movies_count = serializers.IntegerField(source='movies.count', read_only=True)
+        if user.confirmation_code != data['confirmation_code']:
+            raise serializers.ValidationError("Неверный код подтверждения.")
 
-    class Meta:
-        model = Director
-        fields = '__all__'
+        user.is_active = True
+        user.confirmation_code = None
+        user.save()
+        return user
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        user = authenticate(username=data['username'], password=data['password'])
+        if not user:
+            raise serializers.ValidationError("Неверные учетные данные.")
+        if not user.is_active:
+            raise serializers.ValidationError("Аккаунт не подтвержден.")
+        return user

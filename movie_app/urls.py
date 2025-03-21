@@ -1,20 +1,8 @@
 from django.urls import path
-from .views import (
-    DirectorListCreateView, DirectorDetailView,
-    MovieListCreateView, MovieDetailView,
-    ReviewListCreateView, ReviewDetailView
-)
+from .views import RegisterView, ConfirmView, LoginView
 
 urlpatterns = [
-    # Режиссеры
-    path('v1/directors/', DirectorListCreateView.as_view(), name='director-list'),
-    path('v1/directors/<int:pk>/', DirectorDetailView.as_view(), name='director-detail'),
-
-    # Фильмы
-    path('v1/movies/', MovieListCreateView.as_view(), name='movie-list'),
-    path('v1/movies/<int:pk>/', MovieDetailView.as_view(), name='movie-detail'),
-
-    # Отзывы
-    path('v1/reviews/', ReviewListCreateView.as_view(), name='review-list'),
-    path('v1/reviews/<int:pk>/', ReviewDetailView.as_view(), name='review-detail'),
+    path("v1/users/register/", RegisterView.as_view(), name="register"),
+    path("v1/users/confirm/", ConfirmView.as_view(), name="confirm"),
+    path("v1/users/login/", LoginView.as_view(), name="login"),
 ]

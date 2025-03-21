@@ -1,30 +1,29 @@
-from rest_framework import generics
-from .models import Director, Movie, Review
-from .serializers import DirectorSerializer, MovieSerializer, ReviewSerializer
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.contrib.auth import login
+from .serializers import RegistrationSerializer, ConfirmSerializer, LoginSerializer
 
-# CRUD для режиссёров
-class DirectorListCreateView(generics.ListCreateAPIView):
-    queryset = Director.objects.all()
-    serializer_class = DirectorSerializer
+class RegisterView(APIView):
+    def post(self, request):
+        serializer = RegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({"message": "Регистрация успешна. Код подтверждения отправлен."}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class DirectorDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Director.objects.all()
-    serializer_class = DirectorSerializer
+class ConfirmView(APIView):
+    def post(self, request):
+        serializer = ConfirmSerializer(data=request.data)
+        if serializer.is_valid():
+            return Response({"message": "Аккаунт подтвержден."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# CRUD для фильмов
-class MovieListCreateView(generics.ListCreateAPIView):
-    queryset = Movie.objects.all()
-    serializer_class = MovieSerializer
-
-class MovieDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Movie.objects.all()
-    serializer_class = MovieSerializer
-
-# CRUD для отзывов
-class ReviewListCreateView(generics.ListCreateAPIView):
-    queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
-
-class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
+class LoginView(APIView):
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data
+            login(request, user)
+            return Response({"message": "Вход выполнен успешно."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
